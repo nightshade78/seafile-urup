@@ -17,7 +17,7 @@ echook()
   echo ""
 }
 
-PROJECT=seafile-urup-baseimage
+PROJECT=nightshade78/seafile-urup-baseimage
 
 source config
 

@@ -1,5 +1,5 @@
 # Build customuser image from baseimage image
-FROM seafile-urup-baseimage:BASEVERARG
+FROM nightshade78/seafile-urup-baseimage:BASEVERARG
 
 # Create image-internal user/group seafile:seafile if according IDs are not 0
 # Also apply permission fixes for running container in user context
