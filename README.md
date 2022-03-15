@@ -11,6 +11,7 @@ Seafile Server UnRooted UnProxxed - A docker image for Seafile server with the f
 This project contains the following:
  - image: Everything that is needed for building the baseimage as well as a (optional, required for running a dedicated user account) custom image
  - image-phusionbased: This was the first version, based upon the phusion-baseimage (just like the original seafile-mc image) - deprecated, discontinued, to be removed soon
+ - sample: Sample seafile config and scripts for starting the containers (with placeholders, needs to be adapted for your personal use first!)
  - utils-helpers: Some helper utilities, mainly for relevant extracting changes from the original seafile-mc image versions
 
 # Requirements
