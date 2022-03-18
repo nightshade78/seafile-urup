@@ -1,6 +1,6 @@
 # --- config shared for both baseimage and customuser ---
 SEAFILE_VERSION=9.0.4
-BASEIMAGE_BUILD=2
+BASEIMAGE_BUILD=3
 
 # --- config for baseimage ---
 UBUNTU_VERSION=focal
