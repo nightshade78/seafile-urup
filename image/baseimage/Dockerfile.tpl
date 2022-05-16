@@ -48,7 +48,7 @@ RUN rm -f /usr/bin/python && ln -s /usr/bin/python3 /usr/bin/python
 RUN python3 -m pip install --upgrade pip && rm -r /root/.cache/pip
 RUN pip3 install --timeout=3600 click termcolor colorlog pymysql \
     django==3.2.* && rm -r /root/.cache/pip
-RUN pip3 install --timeout=3600 future mysqlclient Pillow pylibmc captcha jinja2 \
+RUN pip3 install --timeout=3600 future mysqlclient Pillow pylibmc captcha markupsafe==2.0.1 jinja2 \
     sqlalchemy==1.4.3 django-pylibmc django-simple-captcha pyjwt pycryptodome==3.12.0 cffi==1.14.0 && \
     rm -r /root/.cache/pip
 
