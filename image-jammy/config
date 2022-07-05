@@ -1,0 +1,16 @@
+# --- config shared for both baseimage and customuser ---
+SEAFILE_VERSION=9.0.6
+BASEIMAGE_BUILD=1
+
+# --- config for baseimage ---
+UBUNTU_VERSION=jammy
+
+# --- config for customuser ---
+CUSTOM_BUILD=1
+# if you wish to create an image that can be run in the context of specific user,
+# you must enter an existing user and group here
+TARGET_USER=seafile
+TARGET_GROUP=seafile
+# you could also disable customuser build by setting these variables empty
+#TARGET_USER=''
+#TARGET_GROUP=''
