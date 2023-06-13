@@ -928,6 +928,7 @@ class SeafileConfigurator(AbstractConfigurator):
             fp.write('[fileserver]\nport=%d\n' % self.fileserver_port)
 
         self.generate_db_conf()
+        self.generate_notification_conf()
 
         ## use default seafile-data path: seafile_data_dir=${TOPDIR}/seafile-data
 
@@ -952,6 +953,32 @@ class SeafileConfigurator(AbstractConfigurator):
         config.set(db_section, 'password', db_config.seafile_mysql_password)
         config.set(db_section, 'db_name', db_config.seafile_db_name)
         config.set(db_section, 'connection_charset', 'utf8')
+
+        Utils.write_config(config, self.seafile_conf)
+
+    def generate_notification_conf(self):
+        config = Utils.read_config(self.seafile_conf)
+        # [notification]
+        # enabled=
+        # host=
+        # port=
+        # log_level=
+        # jwt_private_key=
+        script = os.path.join(env_mgr.install_path, 'seahub/tools/secret_key_generator.py')
+        cmd = [
+            Utils.get_python_executable(),
+            script,
+        ]
+        jwt_private_key = Utils.get_command_output(cmd).strip().decode('utf8').replace('%', '')
+
+        db_section = 'notification'
+        if not config.has_section(db_section):
+            config.add_section(db_section)
+        config.set(db_section, 'enabled', 'false')
+        config.set(db_section, 'host', '127.0.0.1')
+        config.set(db_section, 'port', '8083')
+        config.set(db_section, 'log_level', 'info')
+        config.set(db_section, 'jwt_private_key', jwt_private_key)
 
         Utils.write_config(config, self.seafile_conf)
 
@@ -1017,6 +1044,8 @@ class SeahubConfigurator(AbstractConfigurator):
             self.write_utf8_comment(fp)
             fp.write('\n')
             self.write_secret_key(fp)
+            fp.write('\n')
+            fp.write('SERVICE_URL = "http://%s/"' % ccnet_config.ip_or_domain)
             fp.write('\n')
             self.write_database_config(fp)
 

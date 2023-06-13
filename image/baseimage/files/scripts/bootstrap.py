@@ -65,9 +65,12 @@ def gen_custom_dir():
 #        loginfo('Found existing cert file {}'.format(ssl_crt))
 #        if cert_has_valid_days(ssl_crt, 30):
 #            loginfo('Skip letsencrypt verification since we have a valid certificate')
-#            if exists(join(ssl_dir, 'letsencrypt')):
-#                # Create a crontab to auto renew the cert for letsencrypt.
-#                call('/scripts/auto_renew_crt.sh {0} {1}'.format(ssl_dir, domain))
+#            # Create a crontab to auto renew the cert for letsencrypt.
+#            with open('/var/spool/cron/crontabs/root', 'r') as f:
+#                crons = f.read()
+#            if '/scripts/ssl.sh' not in crons:
+#                call('echo "0 1 * * * /scripts/ssl.sh {0} {1} >> /opt/ssl/letsencrypt.log 2>&1" >> /var/spool/cron/crontabs/root'.format(ssl_dir, domain))
+#                call('/usr/bin/crontab /var/spool/cron/crontabs/root')
 #            return
 #
 #    loginfo('Starting letsencrypt verification')
@@ -89,7 +92,8 @@ def gen_custom_dir():
 #    #     time.sleep(1000)
 #    #     sys.exit(1)
 #
-#    call('/scripts/auto_renew_crt.sh {0} {1}'.format(ssl_dir, domain))
+#    call('echo "0 1 * * * /scripts/ssl.sh {0} {1} >> /opt/ssl/letsencrypt.log 2>&1" >> /var/spool/cron/crontabs/root'.format(ssl_dir, domain))
+#    call('/usr/bin/crontab /var/spool/cron/crontabs/root')
 #    # Create a crontab to auto renew the cert for letsencrypt.
 #
 #
@@ -178,9 +182,6 @@ COMPRESS_CACHE_BACKEND = 'locmem'""")
         fp.write("TIME_ZONE = '{time_zone}'".format(time_zone=os.getenv('TIME_ZONE',default='Etc/UTC')))
         fp.write('\n')
         fp.write('FILE_SERVER_ROOT = "{proto}://{domain}/seafhttp"'.format(proto=proto, domain=domain))
-        fp.write('\n')
-        # Connection to the Office-preview-container
-        fp.write("OFFICE_CONVERTOR_ROOT = 'http://office-preview:8089'")
         fp.write('\n')
 
     # Disabled the Elasticsearch process on Seafile-container

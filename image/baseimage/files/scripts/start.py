@@ -50,7 +50,10 @@ def main():
 #    if is_https():
 #        init_letsencrypt()
 #    generate_local_nginx_conf()
-#    call('nginx -s reload')
+#    try:
+#        call('nginx -s reload')
+#    except Exception as e:
+#        print(e)
 
     wait_for_mysql()
     init_seafile_server()
@@ -68,6 +71,14 @@ def main():
 
 
     try:
+#        non_root = os.getenv('NON_ROOT', default='') == 'true'
+#        if non_root:
+#            call('chown -R seafile:seafile /shared/seafile/')
+#            call('su seafile -c "{} start"'.format(get_script('seafile.sh')))
+#            call('su seafile -c "{} start"'.format(get_script('seahub.sh')))
+#        else:
+#            call('{} start'.format(get_script('seafile.sh')))
+#            call('{} start'.format(get_script('seahub.sh')))       
         call('{} start'.format(get_script('seafile.sh')))
         call('{} start'.format(get_script('seahub.sh')))
     finally:

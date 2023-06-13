@@ -30,10 +30,13 @@ RUN apt-get update --fix-missing \
     && apt-get install -y libmysqlclient-dev \
     # Memcache
     && apt-get install -y libmemcached11 libmemcached-dev \
+    # libffi
+    && apt-get install -y libffi-dev \
     # Fuse
     && apt-get install -y fuse \
     # Ldap
     && apt-get install -y ldap-utils ca-certificates \
+    && mkdir -p /etc/ldap \
     && echo "TLS_REQCERT     allow" >> /etc/ldap/ldap.conf \
     # Python3
     && apt-get install -y python3 python3-pip python3-setuptools \
@@ -41,9 +44,7 @@ RUN apt-get update --fix-missing \
     && ln -s /usr/bin/python3 /usr/bin/python \
     && python3 -m pip install --upgrade pip \
     && rm -r /root/.cache/pip \
-    && pip3 install --timeout=3600 click termcolor colorlog pymysql django==3.2.* lxml \
-    && rm -r /root/.cache/pip \
-    && pip3 install --timeout=3600 future mysqlclient Pillow pylibmc captcha markupsafe==2.0.1 jinja2 sqlalchemy==1.4.3 django-pylibmc django-simple-captcha pyjwt pycryptodome==3.12.0 cffi==1.14.0 \
+    && pip3 install --timeout=3600 click termcolor colorlog pymysql django==3.2.* future==0.18.* mysqlclient==2.1.* pillow==9.3.* pylibmc captcha==0.4 markupsafe==2.0.1 jinja2 sqlalchemy==1.4.3 django-pylibmc django_simple_captcha==0.5.* pyjwt==2.6.* djangosaml2==1.5.* pysaml2==7.2.* pycryptodome==3.16.* cffi==1.15.1 psd-tools lxml \
     && rm -r /root/.cache/pip \
     # Cleanup apt caches
     && rm -r /var/lib/apt/lists/*
@@ -61,12 +62,10 @@ WORKDIR /opt/seafile/seafile-server-SFLVERARG
 ADD generated/seafile-server-SFLVERARG .
 WORKDIR /opt/seafile
 
-# For using TLS connection to LDAP/AD server with docker-ce.
-RUN find /opt/seafile/ \( -name "liblber-*" -o -name "libldap-*" -o -name "libldap_r*" -o -name "libsasl2.so*" -o -name "libcrypt.so.1" \) -delete
-
 # Expose ports
 EXPOSE 8082
 EXPOSE 8000
+EXPOSE 8083
 
 # Entry point command
 CMD [ "/sbin/my_init", "--", "/scripts/enterpoint.sh" ]

@@ -22,6 +22,21 @@ function log() {
 #done
 
 
+# non-noot
+#if [[ $NON_ROOT == "true" ]] ;then
+#    log "Create linux user seafile, please wait."
+#    groupadd --gid 8000 seafile 
+#    useradd --home-dir /home/seafile --create-home --uid 8000 --gid 8000 --shell /bin/sh --skel /dev/null seafile
+#
+#    chown -R seafile:seafile /opt/seafile/ 
+#    chown -R seafile:seafile /shared/
+#else
+## logrotate
+#    cat /scripts/logrotate-conf/logrotate-cron >> /var/spool/cron/crontabs/root
+#    /usr/bin/crontab /var/spool/cron/crontabs/root
+#fi
+
+
 # start cluster server
 if [[ $CLUSTER_SERVER == "true" && $SEAFILE_SERVER == "seafile-pro-server" ]] ;then
     /scripts/cluster_server.sh enterpoint &
