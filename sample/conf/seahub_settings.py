@@ -52,5 +52,7 @@ SITE_NAME = 'Seafile'
 SITE_TITLE = 'My-Seafile'
 
 SERVICE_URL = 'https://host.domain.tld/seafile'
+## Important: Do NOT use a trailing / after the TLD!
+CSRF_TRUSTED_ORIGINS = ["https://host.domain.tld"]
 
 #OFFICE_CONVERTOR_ROOT = 'http://office-preview:8089'
