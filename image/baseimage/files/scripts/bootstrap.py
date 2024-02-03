@@ -86,11 +86,9 @@ def gen_custom_dir():
 #    call('nginx -s reload')
 #    time.sleep(2)
 #
-#    call('/scripts/ssl.sh {0} {1}'.format(ssl_dir, domain))
-#    # if call('/scripts/ssl.sh {0} {1}'.format(ssl_dir, domain), check_call=False) != 0:
-#    #     eprint('Now waiting 1000s for postmortem')
-#    #     time.sleep(1000)
-#    #     sys.exit(1)
+#    return_code = call('/scripts/ssl.sh {0} {1}'.format(ssl_dir, domain), check_call=False)
+#    if return_code not in [0, 2]:
+#        raise RuntimeError('Failed to generate ssl certificate for domain {0}'.format(domain))
 #
 #    call('echo "0 1 * * * /scripts/ssl.sh {0} {1} >> /opt/ssl/letsencrypt.log 2>&1" >> /var/spool/cron/crontabs/root'.format(ssl_dir, domain))
 #    call('/usr/bin/crontab /var/spool/cron/crontabs/root')
@@ -117,6 +115,13 @@ def gen_custom_dir():
 #
 #def is_https():
 #    return get_conf('SEAFILE_SERVER_LETSENCRYPT', 'false').lower() == 'true'
+#
+#def get_proto():
+#    proto = 'https' if is_https() else 'http'
+#    force_https_in_conf = get_conf('FORCE_HTTPS_IN_CONF', 'false').lower() == 'true'
+#    if force_https_in_conf:
+#        proto = 'https'
+#    return proto
 
 def parse_args():
     ap = argparse.ArgumentParser()
@@ -144,7 +149,8 @@ def init_seafile_server():
         'MYSQL_USER': 'seafile',
         'MYSQL_USER_PASSWD': str(uuid.uuid4()),
         'MYSQL_USER_HOST': '%.%.%.%',
-        'MYSQL_HOST': get_conf('DB_HOST','127.0.0.1'),
+        'MYSQL_HOST': get_conf('DB_HOST', '127.0.0.1'),
+        'MYSQL_PORT': int(get_conf('DB_PORT', 3306)),
         # Default MariaDB root user has empty password and can only connect from localhost.
         'MYSQL_ROOT_PASSWD': get_conf('DB_ROOT_PASSWD', ''),
     }
@@ -164,7 +170,7 @@ def init_seafile_server():
     call('{} auto -n seafile'.format(setup_script), env=env)
 
     domain = get_conf('SEAFILE_SERVER_HOSTNAME', 'seafile.example.com')
-#    proto = 'https' if is_https() else 'http'
+#    proto = get_proto()
     proto = 'http'
     with open(join(topdir, 'conf', 'seahub_settings.py'), 'a+') as fp:
         fp.write('\n')

@@ -9,7 +9,7 @@ function log() {
 }
 
 
-## check nginx
+# check nginx
 #while [ 1 ]; do
 #    process_num=$(ps -ef | grep "/usr/sbin/nginx" | grep -v "grep" | wc -l)
 #    if [ $process_num -eq 0 ]; then

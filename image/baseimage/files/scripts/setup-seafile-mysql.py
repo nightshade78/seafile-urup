@@ -346,8 +346,8 @@ class EnvManager(object):
             os.path.join(install_path, 'seahub-extra'),
             os.path.join(install_path, 'seahub-extra', 'thirdparts'),
 
-            os.path.join(install_path, 'seafile/lib/python3.6/site-packages'),
-            os.path.join(install_path, 'seafile/lib64/python3.6/site-packages'),
+            os.path.join(install_path, 'seafile/lib/python3/site-packages'),
+            os.path.join(install_path, 'seafile/lib64/python3/site-packages'),
         ]
 
         for path in extra_python_path:
@@ -642,9 +642,9 @@ class NewDBConfigurator(AbstractDBConfigurator):
                                   validate=self.validate_db_name)
 
     def ask_db_names(self):
-        self.ccnet_db_name = self.ask_db_name('ccnet-server', 'ccnet-db')
-        self.seafile_db_name = self.ask_db_name('seafile-server', 'seafile-db')
-        self.seahub_db_name = self.ask_db_name('seahub', 'seahub-db')
+        self.ccnet_db_name = self.ask_db_name('ccnet-server', 'ccnet_db')
+        self.seafile_db_name = self.ask_db_name('seafile-server', 'seafile_db')
+        self.seahub_db_name = self.ask_db_name('seahub', 'seahub_db')
 
     def validate_db_name(self, db_name):
         return db_name
@@ -1455,9 +1455,9 @@ def main():
         parser.add_argument('-w', '--mysql-user-passwd', help='mysql user password')
         parser.add_argument('-q', '--mysql-user-host', help='mysql user host')
         parser.add_argument('-r', '--mysql-root-passwd', help='mysql root password')
-        parser.add_argument('-c', '--ccnet-db', help='ccnet db name')
-        parser.add_argument('-s', '--seafile-db', help='seafile db name')
-        parser.add_argument('-b', '--seahub-db', help='seahub db name')
+        parser.add_argument('-c', '--ccnet_db', help='ccnet db name')
+        parser.add_argument('-s', '--seafile_db', help='seafile db name')
+        parser.add_argument('-b', '--seahub_db', help='seahub db name')
 
         args = parser.parse_args()
 
