@@ -69,7 +69,7 @@ def gen_custom_dir():
 #            with open('/var/spool/cron/crontabs/root', 'r') as f:
 #                crons = f.read()
 #            if '/scripts/ssl.sh' not in crons:
-#                call('echo "0 1 * * * /scripts/ssl.sh {0} {1} >> /opt/ssl/letsencrypt.log 2>&1" >> /var/spool/cron/crontabs/root'.format(ssl_dir, domain))
+#                call('echo "0 1 * * * /scripts/ssl.sh {0} {1} >> /shared/ssl/letsencrypt.log 2>&1" >> /var/spool/cron/crontabs/root'.format(ssl_dir, domain))
 #                call('/usr/bin/crontab /var/spool/cron/crontabs/root')
 #            return
 #
@@ -90,7 +90,7 @@ def gen_custom_dir():
 #    if return_code not in [0, 2]:
 #        raise RuntimeError('Failed to generate ssl certificate for domain {0}'.format(domain))
 #
-#    call('echo "0 1 * * * /scripts/ssl.sh {0} {1} >> /opt/ssl/letsencrypt.log 2>&1" >> /var/spool/cron/crontabs/root'.format(ssl_dir, domain))
+#    call('echo "0 1 * * * /scripts/ssl.sh {0} {1} >> /shared/ssl/letsencrypt.log 2>&1" >> /var/spool/cron/crontabs/root'.format(ssl_dir, domain))
 #    call('/usr/bin/crontab /var/spool/cron/crontabs/root')
 #    # Create a crontab to auto renew the cert for letsencrypt.
 #
@@ -150,7 +150,7 @@ def init_seafile_server():
         'MYSQL_USER_PASSWD': str(uuid.uuid4()),
         'MYSQL_USER_HOST': '%.%.%.%',
         'MYSQL_HOST': get_conf('DB_HOST', '127.0.0.1'),
-        'MYSQL_PORT': int(get_conf('DB_PORT', 3306)),
+        'MYSQL_PORT': get_conf('DB_PORT', 3306),
         # Default MariaDB root user has empty password and can only connect from localhost.
         'MYSQL_ROOT_PASSWD': get_conf('DB_ROOT_PASSWD', ''),
     }
