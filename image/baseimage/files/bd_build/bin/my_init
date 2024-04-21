@@ -22,7 +22,7 @@ LOG_LEVEL_WARN = 1
 LOG_LEVEL_INFO = 2
 LOG_LEVEL_DEBUG = 3
 
-SHENV_NAME_WHITELIST_REGEX = re.compile('\W')
+SHENV_NAME_WHITELIST_REGEX = re.compile(r'\W')
 
 log_level = None
 
