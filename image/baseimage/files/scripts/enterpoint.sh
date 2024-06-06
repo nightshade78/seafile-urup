@@ -24,17 +24,34 @@ function log() {
 
 # non-noot
 #if [[ $NON_ROOT == "true" ]] ;then
-#    log "Create linux user seafile, please wait."
+#    log "Create linux user seafile in container, please wait."
 #    groupadd --gid 8000 seafile 
 #    useradd --home-dir /home/seafile --create-home --uid 8000 --gid 8000 --shell /bin/sh --skel /dev/null seafile
 #
-#    chown -R seafile:seafile /opt/seafile/ 
-#    chown -R seafile:seafile /shared/
-#else
-## logrotate
-#    cat /scripts/logrotate-conf/logrotate-cron >> /var/spool/cron/crontabs/root
-#    /usr/bin/crontab /var/spool/cron/crontabs/root
+#    if [[ -e /shared/seafile/ ]]; then
+#        permissions=$(stat -c %a "/shared/seafile/")
+#        owner=$(stat -c %U "/shared/seafile/")
+#        if [[ $permissions != "777" && $owner != "seafile" ]]; then
+#            log "The permission of path seafile/ is incorrect."
+#            log "To use non root, run [ chmod -R a+rwx /opt/seafile-data/seafile/ ] and try again later, now quit."
+#            exit 1
+#        fi
+#    fi
+#
+#    # chown
+#    chown seafile:seafile /opt/seafile/
+#    chown -R seafile:seafile /opt/seafile/$SEAFILE_SERVER-$SEAFILE_VERSION/
+#
+#    # logrotate
+#    sed -i 's/^        create 644 root root/        create 644 seafile seafile/' /scripts/logrotate-conf/seafile
+#
+#    # seafile.sh
+#    sed -i 's/^    validate_running_user;/#    validate_running_user;/' /opt/seafile/$SEAFILE_SERVER-$SEAFILE_VERSION/seafile.sh
 #fi
+
+# logrotate
+#cat /scripts/logrotate-conf/logrotate-cron >> /var/spool/cron/crontabs/root
+#/usr/bin/crontab /var/spool/cron/crontabs/root
 
 
 # start cluster server

@@ -45,16 +45,17 @@ def main(args):
     try:
         non_root = os.getenv('NON_ROOT', default='') == 'true'
         if non_root:
-            call('chown -R seafile:seafile /shared/seafile/')
             call('su seafile -c "{} start"'.format(get_script('seafile.sh')))
-            call('su seafile -c "{} start"'.format(get_script('seahub.sh')))
             if args.mode == 'backend':
                 call('su seafile -c "{} start"'.format(get_script('seafile-background-tasks.sh')))
+            else:
+                call('su seafile -c "{} start"'.format(get_script('seahub.sh')))
         else:
             call('{} start'.format(get_script('seafile.sh')))
-            call('{} start'.format(get_script('seahub.sh')))
             if args.mode == 'backend':
                 call('{} start'.format(get_script('seafile-background-tasks.sh')))
+            else:
+                call('{} start'.format(get_script('seahub.sh')))
     finally:
         if exists(password_file):
             os.unlink(password_file)
