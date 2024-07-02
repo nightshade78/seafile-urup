@@ -2,7 +2,7 @@
 FROM ubuntu:UBTVERARG
 
 # Set maintainer
-MAINTAINER nightshade@tdfc.de
+LABEL maintainer="Nightshade nightshade@tdfc.de"
 
 # Apply the changes usually done by Phusion (except sshd and cron), see https://github.com/phusion/baseimage-docker
 COPY files/bd_build /bd_build
