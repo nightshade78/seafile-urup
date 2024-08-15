@@ -1,5 +1,5 @@
 # --- config shared for both baseimage and customuser ---
-SEAFILE_VERSION=11.0.11
+SEAFILE_VERSION=11.0.12
 BASEIMAGE_BUILD=1
 
 # --- config for baseimage ---
