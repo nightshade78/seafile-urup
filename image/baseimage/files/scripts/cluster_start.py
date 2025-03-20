@@ -18,14 +18,14 @@ def watch_controller():
     maxretry = 4
     retry = 0
     while retry < maxretry:
-        controller_pid = get_command_output('ps aux | grep seafile-controller | grep -v grep || true').strip()
+        controller_pid = get_command_output('ps aux | grep seafile-monitor.sh | grep -v grep || true').strip()
         garbage_collector_pid = get_command_output('ps aux | grep /scripts/gc.sh | grep -v grep || true').strip()
         if not controller_pid and not garbage_collector_pid:
             retry += 1
         else:
             retry = 0
         time.sleep(5)
-    print('seafile controller exited unexpectedly.')
+    print('seafile monitor exited unexpectedly.')
     sys.exit(1)
 
 def main(args):
@@ -35,8 +35,8 @@ def main(args):
     # call('service nginx start &')
 
     admin_pw = {
-        'email': get_conf('SEAFILE_ADMIN_EMAIL', 'me@example.com'),
-        'password': get_conf('SEAFILE_ADMIN_PASSWORD', 'asecret'),
+        'email': get_conf('INIT_SEAFILE_ADMIN_EMAIL', 'me@example.com'),
+        'password': get_conf('INIT_SEAFILE_ADMIN_PASSWORD', 'asecret'),
     }
     password_file = join(topdir, 'conf', 'admin.txt')
     with open(password_file, 'w+') as fp:

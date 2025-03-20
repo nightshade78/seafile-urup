@@ -26,23 +26,26 @@ RUN apt-get update --fix-missing \
     && apt-get install -y vim htop net-tools psmisc wget curl git unzip nano \
     # For support set local time zone.
     && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get install tzdata -y \
+    && apt-get install -y tzdata \
     # Mysqlclient
     && apt-get install -y libmysqlclient-dev \
     # Memcache
     && apt-get install -y libmemcached11 libmemcached-dev \
     # Fuse
-    && apt-get install -y fuse \
+    && apt-get install -y fuse poppler-utils \
     # Ldap
-    && apt-get install -y ldap-utils libldap2-dev ca-certificates \
+    && apt-get install -y ldap-utils libldap2-dev ca-certificates dnsutils pkg-config \
     && mkdir -p /etc/ldap \
     && echo "TLS_REQCERT     allow" >> /etc/ldap/ldap.conf \
     # Python3
-    && apt-get install -y python3 python3-dev python3-pip python3-setuptools python3-ldap \
+    && apt-get install -y python3 python3-pip python3-setuptools python3-ldap \
+    && rm /usr/lib/python3.12/EXTERNALLY-MANAGED \
     && rm -f /usr/bin/python \
     && ln -s /usr/bin/python3 /usr/bin/python \
-    && python3 -m pip install --no-cache-dir --upgrade pip \
-    && pip3 install --no-cache-dir --timeout=3600 click termcolor colorlog pymysql django==4.2.* future==0.18.* mysqlclient==2.1.* pillow==10.2.* pylibmc captcha==0.5.* markupsafe==2.0.1 jinja2 sqlalchemy==2.0.18 django-pylibmc django_simple_captcha==0.6.* pyjwt==2.6.* djangosaml2==1.5.* pysaml2==7.2.* pycryptodome==3.16.* cffi==1.15.1 python-ldap==3.4.3 psd-tools lxml \
+    && pip3 install --no-cache-dir --ignore-installed -U setuptools cryptography \
+    && rm -rf /usr/lib/python3/dist-packages/setuptools* \
+    && rm -rf /usr/lib/python3/dist-packages/cryptography* \
+    && pip3 install --no-cache-dir --timeout=3600 click termcolor colorlog sqlalchemy==2.0.* gevent==24.2.* pymysql==1.1.* jinja2 markupsafe==2.0.1 django-pylibmc pylibmc psd-tools lxml django==4.2.* cffi==1.17.0 future==1.0.* mysqlclient==2.2.* captcha==0.6.* django_simple_captcha==0.6.* pyjwt==2.9.* djangosaml2==1.9.* pysaml2==7.3.* pycryptodome==3.20.* python-ldap==3.4.* pillow==10.4.* pillow-heif==0.18.* \
     # Cleanup apt caches
     && rm -r /var/lib/apt/lists/*
 
