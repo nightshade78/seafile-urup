@@ -287,7 +287,8 @@ def wait_for_mysql():
         try:
             connection = pymysql.connect(host=db_host, port=db_port, user=db_user, passwd=db_passwd)
         except Exception as e:
-            print ('waiting for mysql server to be ready: %s', e)
+            print('waiting for mysql server to be ready: mysql is not ready')
+            logdbg('waiting for mysql server to be ready: mysql is not ready')
             time.sleep(2)
             continue
         logdbg('mysql server is ready')
@@ -309,3 +310,8 @@ def replace_file_pattern(fn, pattern, replacement):
         content = fp.read()
     with open(fn, 'w') as fp:
         fp.write(content.replace(pattern, replacement))
+
+def is_pro_version():
+    if os.getenv('SEAFILE_SERVER') == "seafile-pro-server":
+        return True
+    return False

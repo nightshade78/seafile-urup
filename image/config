@@ -1,9 +1,9 @@
 # --- config shared for both baseimage and customuser ---
-SEAFILE_VERSION=11.0.13
-BASEIMAGE_BUILD=2
+SEAFILE_VERSION=12.0.14
+BASEIMAGE_BUILD=1
 
 # --- config for baseimage ---
-UBUNTU_VERSION=jammy
+UBUNTU_VERSION=noble
 
 # --- config for customuser ---
 CUSTOM_BUILD=1

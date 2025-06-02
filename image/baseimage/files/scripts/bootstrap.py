@@ -17,13 +17,13 @@ import time
     # call, get_conf, get_install_dir, loginfo,
     # get_script, render_template, get_seafile_version, eprint,
     # cert_has_valid_days, get_version_stamp_file, update_version_stamp,
-    # wait_for_mysql, wait_for_nginx, read_version_stamp
+    # wait_for_mysql, wait_for_nginx, read_version_stamp, is_pro_version
 # )
 from utils import (
     call, get_conf, get_install_dir, loginfo,
     get_script, get_seafile_version,
     get_version_stamp_file, update_version_stamp,
-    read_version_stamp
+    read_version_stamp, is_pro_version
 )
 
 seafile_version = get_seafile_version()
@@ -78,6 +78,7 @@ def gen_custom_dir():
 #    context = {
 #        'https': False,
 #        'domain': domain,
+#        'is_tmp': True,
 #    }
 #    if not os.path.isfile('/shared/nginx/conf/seafile.nginx.conf'):
 #        render_template('/templates/seafile.nginx.conf.template',
@@ -101,6 +102,7 @@ def gen_custom_dir():
 #    context = {
 #        'https': is_https(),
 #        'domain': domain,
+#        'is_tmp': False,
 #    }
 #
 #    if not os.path.isfile('/shared/nginx/conf/seafile.nginx.conf'):
@@ -118,8 +120,8 @@ def gen_custom_dir():
 #
 #def get_proto():
 #    proto = 'https' if is_https() else 'http'
-#    force_https_in_conf = get_conf('FORCE_HTTPS_IN_CONF', 'false').lower() == 'true'
-#    if force_https_in_conf:
+#    seafile_server_proto = get_conf('SEAFILE_SERVER_PROTOCOL', 'http')
+#    if seafile_server_proto == 'https':
 #        proto = 'https'
 #    return proto
 
@@ -146,25 +148,14 @@ def init_seafile_server():
     env = {
         'SERVER_NAME': 'seafile',
         'SERVER_IP': get_conf('SEAFILE_SERVER_HOSTNAME', 'seafile.example.com'),
-        'MYSQL_USER': 'seafile',
-        'MYSQL_USER_PASSWD': str(uuid.uuid4()),
-        'MYSQL_USER_HOST': '%.%.%.%',
+        'MYSQL_USER': get_conf('DB_USER', 'seafile'),
+        'MYSQL_USER_PASSWD': get_conf('DB_PASSWORD', str(uuid.uuid4())),
+        'MYSQL_USER_HOST': '%',
         'MYSQL_HOST': get_conf('DB_HOST', '127.0.0.1'),
-        'MYSQL_PORT': get_conf('DB_PORT', 3306),
+        'MYSQL_PORT': get_conf('DB_PORT', '3306'),
         # Default MariaDB root user has empty password and can only connect from localhost.
         'MYSQL_ROOT_PASSWD': get_conf('DB_ROOT_PASSWD', ''),
     }
-
-    # Change the script to allow mysql root password to be empty
-    # call('''sed -i -e 's/if not mysql_root_passwd/if not mysql_root_passwd and "MYSQL_ROOT_PASSWD" not in os.environ/g' {}'''
-    #     .format(get_script('setup-seafile-mysql.py')))
-
-    # Change the script to disable check MYSQL_USER_HOST
-    call('''sed -i -e '/def validate_mysql_user_host(self, host)/a \ \ \ \ \ \ \ \ return host' {}'''
-        .format(get_script('setup-seafile-mysql.py')))
-
-    call('''sed -i -e '/def validate_mysql_host(self, host)/a \ \ \ \ \ \ \ \ return host' {}'''
-        .format(get_script('setup-seafile-mysql.py')))
 
     setup_script = get_script('setup-seafile-mysql.sh')
     call('{} auto -n seafile'.format(setup_script), env=env)
@@ -172,12 +163,15 @@ def init_seafile_server():
     domain = get_conf('SEAFILE_SERVER_HOSTNAME', 'seafile.example.com')
 #    proto = get_proto()
     proto = 'http'
+    memcached_host = 'memcached'
+    if get_conf('CLUSTER_SERVER', 'false') == 'true' and get_conf('CLUSTER_INIT_MODE', 'false') == 'true':
+        memcached_host = get_conf('CLUSTER_INIT_MEMCACHED_HOST', '<your memcached host>')
     with open(join(topdir, 'conf', 'seahub_settings.py'), 'a+') as fp:
         fp.write('\n')
         fp.write("""CACHES = {
     'default': {
         'BACKEND': 'django_pylibmc.memcached.PyLibMCCache',
-        'LOCATION': 'memcached:11211',
+        'LOCATION': '""" + memcached_host + """:11211',
     },
     'locmem': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -185,10 +179,13 @@ def init_seafile_server():
 }
 COMPRESS_CACHE_BACKEND = 'locmem'""")
         fp.write('\n')
-        fp.write("TIME_ZONE = '{time_zone}'".format(time_zone=os.getenv('TIME_ZONE',default='Etc/UTC')))
+        fp.write("\nTIME_ZONE = '{time_zone}'".format(time_zone=os.getenv('TIME_ZONE',default='Etc/UTC')))
+        fp.write('\nFILE_SERVER_ROOT = \'{proto}://{domain}/seafhttp\''.format(proto=proto, domain=domain))
         fp.write('\n')
-        fp.write('FILE_SERVER_ROOT = "{proto}://{domain}/seafhttp"'.format(proto=proto, domain=domain))
-        fp.write('\n')
+        if get_conf('CLUSTER_SERVER', 'false') == 'true' and get_conf('CLUSTER_INIT_MODE', 'false') == 'true':
+            fp.write(f'\nSERVICE_URL = \'{proto}://{domain}/\'')
+            fp.write(f'\nAVATAR_FILE_STORAGE = \'seahub.base.database_storage.DatabaseStorage\'')
+            fp.write('\n')
 
     # Disabled the Elasticsearch process on Seafile-container
     # Connection to the Elasticsearch-container
@@ -196,9 +193,20 @@ COMPRESS_CACHE_BACKEND = 'locmem'""")
         with open(join(topdir, 'conf', 'seafevents.conf'), 'r') as fp:
             fp_lines = fp.readlines()
             if '[INDEX FILES]\n' in fp_lines:
-               insert_index = fp_lines.index('[INDEX FILES]\n') + 1
-               insert_lines = ['es_port = 9200\n', 'es_host = elasticsearch\n', 'external_es_server = true\n']
-               for line in insert_lines:
+                insert_index = fp_lines.index('[INDEX FILES]\n') + 1
+                if get_conf('CLUSTER_SERVER', 'false') == 'true' and get_conf('CLUSTER_INIT_MODE', 'false') == 'true':
+                    insert_lines = [
+                        f'es_port = {get_conf("CLUSTER_INIT_ES_PORT", "9200")}\n',
+                        f'es_host = {get_conf("CLUSTER_INIT_ES_HOST", "<your elasticsearch server HOST>")}\n',
+                        'external_es_server = true\n'
+                    ]
+                else:
+                    insert_lines = [
+                        'es_port = 9200\n', 
+                        'es_host = elasticsearch\n',
+                        'external_es_server = true\n'
+                    ]
+                for line in insert_lines:
                    fp_lines.insert(insert_index, line)
         with open(join(topdir, 'conf', 'seafevents.conf'), 'w') as fp:
             fp.writelines(fp_lines)
@@ -211,9 +219,69 @@ COMPRESS_CACHE_BACKEND = 'locmem'""")
                replace_index = fp_lines.index('share_name = /\n')
                replace_line = 'share_name = /seafdav\n'
                fp_lines[replace_index] = replace_line
-
         with open(join(topdir, 'conf', 'seafdav.conf'), 'w') as fp:
             fp.writelines(fp_lines)
+
+    # Modify seafile config
+    if is_pro_version():
+        # for seafile-pro-server
+        with open(join(topdir, 'conf', 'seafile.conf'), 'a+') as fp:
+            if get_conf('CLUSTER_SERVER', 'false') == 'true' and get_conf('CLUSTER_INIT_MODE', 'false') == 'true':
+                fp.write('\n[cluster]')
+                fp.write('\nenable = true')
+                fp.write('\n')
+
+                fp.write('\n[memcached]')
+                fp.write(f'\nmemcached_options = --SERVER={get_conf("CLUSTER_INIT_MEMCACHED_HOST", "<you memcached server host>")} --POOL-MIN=10 --POOL-MAX=100')
+                fp.write('\n')
+            else:
+                fp.write('\n[memcached]')
+                fp.write('\nmemcached_options = --SERVER=memcached --POOL-MIN=10 --POOL-MAX=100')
+                fp.write('\n')
+
+            if get_conf('INIT_S3_STORAGE_BACKEND_CONFIG', 'false') == 'true':
+                commit_bucket = get_conf('INIT_S3_COMMIT_BUCKET', '<your-commit-objects>')
+                fs_bucket = get_conf('INIT_S3_FS_BUCKET',  '<your-fs-objects>')
+                block_bucket = get_conf('INIT_S3_BLOCK_BUCKET',  '<your-block-objects>')
+                key_id = get_conf('INIT_S3_KEY_ID',  '<your-key-id>')
+                key = get_conf('INIT_S3_SECRET_KEY',  '<your-secret-key>')
+                use_v4_signature = get_conf('INIT_S3_USE_V4_SIGNATURE', 'true')
+                aws_region = get_conf('INIT_S3_AWS_REGION', 'us-east-1')
+                host = get_conf('INIT_S3_HOST', 's3.us-east-1.amazonaws.com')
+                use_https = get_conf('INIT_S3_USE_HTTPS', 'true')
+
+                fp.write('\n[commit_object_backend]')
+                fp.write('\nname = s3')
+                fp.write(f'\nbucket = {commit_bucket}')
+                fp.write(f'\nkey_id = {key_id}')
+                fp.write(f'\nkey = {key}')
+                fp.write(f'\nuse_v4_signature = {use_v4_signature}')
+                fp.write(f'\naws_region = {aws_region}')
+                fp.write(f'\nhost = {host}')
+                fp.write(f'\nuse_https = {use_https}')
+                fp.write('\n')
+
+                fp.write('\n[fs_object_backend]')
+                fp.write('\nname = s3')
+                fp.write(f'\nbucket = {fs_bucket}')
+                fp.write(f'\nkey_id = {key_id}')
+                fp.write(f'\nkey = {key}')
+                fp.write(f'\nuse_v4_signature = {use_v4_signature}')
+                fp.write(f'\naws_region = {aws_region}')
+                fp.write(f'\nhost = {host}')
+                fp.write(f'\nuse_https = {use_https}')
+                fp.write('\n')
+
+                fp.write('\n[block_backend]')
+                fp.write('\nname = s3')
+                fp.write(f'\nbucket = {block_bucket}')
+                fp.write(f'\nkey_id = {key_id}')
+                fp.write(f'\nkey = {key}')
+                fp.write(f'\nuse_v4_signature = {use_v4_signature}')
+                fp.write(f'\naws_region = {aws_region}')
+                fp.write(f'\nhost = {host}')
+                fp.write(f'\nuse_https = {use_https}')
+                fp.write('\n')
 
     # After the setup script creates all the files inside the
     # container, we need to move them to the shared volume
