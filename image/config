@@ -1,6 +1,6 @@
 # --- config shared for both baseimage and customuser ---
 SEAFILE_VERSION=11.0.13
-BASEIMAGE_BUILD=6
+BASEIMAGE_BUILD=8
 
 # --- config for baseimage ---
 UBUNTU_VERSION=jammy
