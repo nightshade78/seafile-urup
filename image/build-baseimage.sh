@@ -38,7 +38,7 @@ fi
 echook
 
 echoc ${BLUE} "Downloading required artifacts..."
-wget -c -O generated/seafile-server_${SEAFILE_VERSION}_x86-64.tar.gz "https://s3.eu-central-1.amazonaws.com/download.seadrive.org/seafile-server_${SEAFILE_VERSION}_x86-64.tar.gz"
+wget -c -O generated/seafile-server_${SEAFILE_VERSION}_x86-64.tar.gz "https://sos-ch-dk-2.exo.io/seafile-downloads/seafile-server_${SEAFILE_VERSION}_x86-64.tar.gz"
 echook
 
 echoc ${BLUE} "Extracting required artifacts..."
